@@ -1,0 +1,13 @@
+**/.vscode
+**/msgraph
+
+**/.git
+.gitignore
+dockerfile
+.dockerignore
+
+
+**api/output/**
+!**api/output/.keep
+**/output/**
+!**/output/.keep
