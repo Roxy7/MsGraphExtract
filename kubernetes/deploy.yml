@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deploy
+  labels:
+    app: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: graph-api
+          image: roxanne7/graph-extract:0.1
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /app/output
+              name: output
+      volumes:
+      - name: output
+        hostPath:
+          path: '/run/desktop/mnt/host/e/projectData/k8volumes/graphoutput'
+          type: DirectoryOrCreate
+

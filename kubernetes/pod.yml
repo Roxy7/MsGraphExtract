@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: graph-pod
+  labels:
+    app: api
+spec:
+  containers:
+    - name: graph-api
+      image: roxanne7/graph-extract:0.1
+      ports:
+        - containerPort: 80
