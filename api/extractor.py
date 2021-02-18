@@ -86,7 +86,8 @@ def get_data(url, payload, headers,filename):
     if 'error' in obj:
         logger.error(f"{obj['error']['code']} - {obj['error']['message']}")
         logger.error(f"last url called: {url}")
-        raise HTTPException(status_code=500, detail=f"{obj['error']['code']} - {obj['error']['message']}")
+        return False
+        #raise HTTPException(status_code=500, detail=f"{obj['error']['code']} - {obj['error']['message']}")
     
  
     with open(filename, 'w') as outfile:
@@ -98,3 +99,88 @@ def get_data(url, payload, headers,filename):
         return obj['@odata.nextLink']
     
     return False
+
+def get_file(url, payload, headers,filename):
+    response = requests.request("GET", url, headers=headers )
+    if response.status_code!=200:
+        return False
+
+    with open(filename, "wb") as f:
+        f.write(response.content)
+    
+    return True
+
+
+def extractUserPhoto(token,object,entity="",typeExtract=""):
+    start=datetime.now()
+    payload = {}
+    headers = {'Authorization': f'Bearer {token}'}
+    baseUrl = "https://graph.microsoft.com"
+    apiVersion = "beta"
+    objectRequested = object
+
+    outputFolder = f'output/raw/api={apiVersion}/object={objectRequested}_photo/year={start.year}/month={start.month}/day={start.day}'
+    if not os.path.exists(outputFolder):
+        os.makedirs(outputFolder)
+
+    logger.info(f'STARTING: Extract photo')
+
+    if typeExtract=="list":
+        jsonEmailList = json.loads(entity)
+        i=0
+        for email in jsonEmailList:
+            url = f'{baseUrl}/{apiVersion}/{objectRequested}/{email}/photo/$value'
+            get_file(url, payload, headers,f'{outputFolder}/{email}.jpeg')
+            i=i+1
+    else:
+        url = f'{baseUrl}/{apiVersion}/{objectRequested}/{entity}/photo/$value'
+        get_file(url, payload, headers,f'{outputFolder}/{entity}.jpeg')
+        i=1
+    
+    logger.info(f'FOLDER: {outputFolder}\n'
+                f'{35 * " "}SUCESSFULL: after {i} iterations in {datetime.now()-start}H'
+                )
+
+    return True
+
+
+
+def extractUserMember(token,object,entity="",typeExtract=""):
+    start=datetime.now()
+    payload = {}
+    headers = {'Authorization': f'Bearer {token}'}
+    baseUrl = "https://graph.microsoft.com"
+    apiVersion = "beta"
+    objectRequested = object
+
+    outputFolder = f'output/raw/api={apiVersion}/object={objectRequested}_member/year={start.year}/month={start.month}/day={start.day}'
+    if not os.path.exists(outputFolder):
+        os.makedirs(outputFolder)
+
+    logger.info(f'STARTING: Extract user member')
+
+    if typeExtract=="list":
+        jsonEmailList = json.loads(entity)
+        i=0
+        for email in jsonEmailList:
+            #/transitiveMemberOf/microsoft.graph.group?$count=true
+            url = f'{baseUrl}/{apiVersion}/{objectRequested}/{email}/transitiveMemberOf/microsoft.graph.group?$count=true'
+            j=0
+            while url:
+                url = get_data(f'{url}', payload, headers,f'{outputFolder}/{start.strftime("%Y%m%d_%H%M%S")}_{email}_{j}.json')
+                j=j+1
+
+            i=i+1
+    else:
+        url = f'{baseUrl}/{apiVersion}/{objectRequested}/{entity}/transitiveMemberOf/microsoft.graph.group?$count=true'
+        j=0
+        while url:
+            url = get_data(f'{url}', payload, headers,f'{outputFolder}/{start.strftime("%Y%m%d_%H%M%S")}_{entity}_{j}.json')
+            j=j+1
+        i=1
+    
+    logger.info(f'FOLDER: {outputFolder}\n'
+                f'{35 * " "}SUCESSFULL: after {i} iterations in {datetime.now()-start}H'
+                )
+
+    return True

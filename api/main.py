@@ -31,12 +31,32 @@ def extractAllUsers(token: Optional[str] = Header(None)) :
 
 @app.post("/users/{usermail}")
 def extractUser(usermail, token: Optional[str] = Header(None)):
-    response =  extractor.extract(token,"users",usermail)
+    response =  extractor.extract(token,"users",usermail.lower())
+    return response
+
+@app.post("/users/photo/")
+def extractListUserPhoto(listuser: Optional[str] = Header(None), token: Optional[str] = Header(None)):
+    response =  extractor.extractUserPhoto(token,"users",listuser.lower(),"list")
+    return response
+
+@app.post("/users/photo/{usermail}")
+def extractUserPhoto(usermail, token: Optional[str] = Header(None)):
+    response =  extractor.extractUserPhoto(token,"users",usermail.lower())
     return response
 
 @app.post("/users/start/{filter}")
 def extractUserStartWith(filter, token: Optional[str] = Header(None)):
     response =  extractor.extract(token,"users",filter=filter)
+    return response
+
+@app.post("/users/member/")
+def extractListUserMember(listuser: Optional[str] = Header(None), token: Optional[str] = Header(None)):
+    response =  extractor.extractUserMember(token,"users",listuser.lower(),"list")
+    return response
+
+@app.post("/users/member/{usermail}")
+def extractUserMember(usermail, token: Optional[str] = Header(None)):
+    response =  extractor.extractUserMember(token,"users",usermail.lower())
     return response
 
 @app.post("/groups")
@@ -48,6 +68,8 @@ def extractAllGroups(token: Optional[str] = Header(None)):
 def extractGroup(groupid, token: Optional[str] = Header(None)):
     response = extractor.extract(token,"groups",groupid)
     return response
+
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=80)
